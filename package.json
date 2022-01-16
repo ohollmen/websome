@@ -22,7 +22,7 @@
   "license": "MIT",
   "homepage": "",
   "repository": "github:ohollmen/websome",
-  "private": true,
+  "private": false,
   "ignore": [
     "**/.*",
     "node_modules",
