@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>webview.js Demo / Test</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+<link rel="stylesheet" href="../bower_components/jquery-ui/themes/le-frog/jquery-ui.css" type="text/css" />
+-->
+<link  rel="stylesheet" href="../node_modules/jquery-ui-dist/jquery-ui.css" type="text/css" />
+
+<script src="../node_modules/jquery/dist/jquery.js" language="javascript"></script>
+<script src="../node_modules/jquery-ui-dist/jquery-ui.js" language="javascript"></script>
+<script type="text/javascript" src="../node_modules/router66/Router66.js"></script>
+<script type="text/javascript" src="../node_modules/router66/lib/rapp.js"></script>
+<script src="../webview.js" language="javascript"></script>
+
+
+<style>
+/* Matrix view cell */
+td span {
+  font-weight: bold;
+  background-color: #888888;
+  color: #EEEEEE;
+  padding: 5px; border-radius: 5px; margin: 3px; display: block;
+  border: 1px solid #AAAAAA; widths: 50px;
+}
+th { text-align: left; }
+#navigationXX ul li { float: left; margin: 5px; }
+#navigationXX ul { list-style-type: none; }
+
+
+body { font-family: sans-serif; }
+  body { margin: 0px; padding: 0px;  }
+  #header { padding: 5px 20px; margin: 0px;  color: #EEEEEE; background-color: #555555;  }
+  #header h1 { font-weight: bold; margin: 0px; padding: 10px; } /* for BS (that un-bolds ...) */
+  
+  /*  border: 0px; (Test container(s), ul, li with 3x colors (#FF0000 #00FF00 #0000FF) */
+  /* Xfloat: left; Xwidth: 100%; Xpadding: 0px; Xmargin: 0px;
+    Xbackground-color: #00FF00; */
+  nav {  }
+  /* border: 1px solid black; ul will not show through */
+  nav ul {
+    padding: 0px; margin: 0px;
+    list-style-type: none;
+    float: left; width: 100%;
+    background-color: #eeeeee;
+  }
+  nav ul li { padding-right: 0px; float: left; background-color: #eeeeee; }
+  nav a { padding: 0px 10px 0px; text-decoration: none; background-color: #eeeeee;  }
+  nav a:hover { padding: 0px 10px 0px; color: white; background-color: #909090; }
+  .active { background-color: #000000; color: #BBBBBB; }
+  /* Content area */
+  #content { margin: 0px; padding: 20px; }
+  /* Sidepane */
+  
+  #sidepanecont { padding-left: 250px; }
+
+
+</style>
+
+<script>
+// TODO: Transform these into a tree (by continent) to provide
+// yet another example of treeview.
+var ctryinfo = [
+  {"name": "France",  "pop": 66.99, "col": "#00319C"},
+  {"name": "Germany", "pop": 82.79, "col": "#000000"},
+  {"name": "Switzerland", "pop": 8.57, "col": "#FF0000"},
+  {"name": "Austria" , "pop": 8.822, "col": "#DF2111"},
+  {"name": "Belgium" , "pop": 11.4, "col": "#000000"},
+  
+  {"name": "Finland", "pop": 5.513, "col": "#003281"},
+  {"name": "Sweden",  "pop": 10.12, "col": "#FECC00"},
+  {"name": "Norway",  "pop": 5.368, "col": "#002868"},
+  {"name": "Denmark",  "pop": 5.603, "col": "#C60C30"},
+  {"name": "Iceland",  "pop": 0.364260, "col": "#000068"},
+  
+  {"name": "Portugal", "pop": 10.29, "col": "#006600"},
+  {"name": "Spain",    "pop": 46.66, "col": "#FFC400"},
+  {"name": "Italy",    "pop": 60.48, "col": "#238D4B"},
+  
+  {"name": "United Kingdom", "pop": 66.44, "col": "#012169"},
+  
+  {"name": "US",     "pop": 327.2, "col": "#B41D31"},
+  {"name": "Mexico", "pop": 129.2, "col": "#A56527"},
+  
+  {"name": "China", "pop": 1386.00000, "col": "#ED2124"},
+  {"name": "Korea, South", "pop": 51.47, "col": "#0045A1"}
+];
+// Outer Data with 2 sections, 3 and 2 items each (respectively)
+var arr = [
+  {name: "Greek Alphabets", items: [{name: "Alpha"},{name: "Beta"},{name: "Gamma"}]},
+  {name: "Electronic Mfg:s", items: [{name:"SONY"},{name:"Sharp"}, {name: "Pioneer"}, {name: "Kenwood"}]},
+  {name: "Band Members", items: [{name:"John"},{name:"Paul"},{name: "George"},{name:"Ringo"}]}
+];
+var tree1 = {
+  "name": "John G. Smith",
+  "nick": "Great Grampy",
+  "children": [
+    {
+      "name": "Adam B. Smith",
+      "nick": "The Master Violin Player",
+      "children": [
+        {
+	  "name": "Bobby Smith",
+          "nick": "Guitar Hero"
+	},
+	{
+	  "name": "Sandra Smith",
+           "nick": "Piano Belle"
+	}
+      ]
+    },
+    {
+      "name": "Imelda Smith",
+      "nick": "The Devouted One"
+    },
+    {
+      "name": "Anthony Smith",
+      "nick": "Mechanic",
+      "children": [
+        {
+	  "name": "Sindy Smith",
+          "nick": "Student"
+	},
+	{
+	  "name": "Eric Smith",
+          "nick": "Junior Engineer",
+	  "children": [
+	    {
+	      "name": "Gina Smith",
+	      "nick": "Baby"
+	    },
+	  ]
+	},
+      ]
+    },
+  ]
+};
+var opts_ml = {
+  // Outer multilist options
+  divid: "accordion", hdrattr: "name", subitemsattr: "items",
+  // List options
+  titleattr: "name", liclass: "", uldivid: "", accord: 0
+};
+
+// console.log(out);
+var tabdef_idx = {};
+// (JQ-UI) Tabs
+var tabdef = [
+  {"id":"tabview",   "name":"Tabular Listview",  tmpl:"t_tab"},
+  {"id":"single",    "name":"Single Entry",	 tmpl: "t_single"},
+  {"id":"matrix",    "name":"Matrix View",	 tmpl: "t_mtx"},
+  
+  {"id":"treeview",    "name":"Tree View",	 tmpl: "t_tree"},
+  
+  {"id":"justlist",  "name":"Bulleted Listview", tmpl: "t_list"},
+  {"id":"multilist", "name":"Multi List",	 tmpl: "t_mlist"},
+  {"id":"options",   "name":"Options/Drop-down", tmpl: "t_opts"},
+  
+];
+
+//$( function() {
+window.onload = function () {
+  // Generate tabs, Set them up by JQuery
+  
+  var acts = [
+    {"name": "New Entry", path: "", "id": "new", hdlr: null, },
+    {"name": "Search",    path: "", "id": "search", hdlr: null,},
+    {"name": "Cancel Request", path: "", "id": "cancel", hdlr: null,},
+  ];
+  //tabdef.forEach(function (it) { tabdef_idx[it.id] = it; });
+  var opts = {als: {"name": "Name", "pop": "Population (M)", "col": "ColorSym"},
+      plugs: {col: function (v, ent) { return "<div style='background-color: "+v+"'>.</div>"; }}};
+  // Navigation (id or url)
+  function nav_it_cb(an) { return "<a href=\"#"+an.id+"\">"+an.name+"</a>"; }
+  //JQ: $("#navigation").html(webview.navimenu(acts, {licb: nav_it_cb}));
+  document.getElementById("navigation").innerHTML = webview.navimenu(acts, {licb: nav_it_cb});
+  // Containing Tabs (All Views)
+  //JQ: $("#testarea").html(webview.tabs(tabdef, null, {}));
+  document.getElementById("testarea").innerHTML = webview.tabs(tabdef, null, {});
+  $("#testarea").tabs();
+  ///////////////////////////////////////////////
+  // TODO: Assign event handlers
+  
+  // Table/Grid
+  
+  var out_t = webview.listview(ctryinfo, ["name","pop","col"], opts); // "col"
+  //JQ: $('#tabview').html(""+out_t);
+  document.getElementById("tabview").innerHTML = out_t;
+  
+  // Single Entry
+  //$('#single').html(webview.seview(ctryinfo[0], ["name","pop", "col"], opts));
+  document.getElementById("single").innerHTML = webview.seview(ctryinfo[0], ["name","pop", "col"], opts);
+  // Simple ul List
+  $('#justlist').html(webview.list(ctryinfo, {titleattr: "name"}));
+  
+  // Multilist (in Tabs)
+  var out_ml = webview.multilist(arr, opts_ml);
+  // console.log(out_ml);
+  //$("#multilist").html(out_ml);
+  document.getElementById("multilist").innerHTML = out_ml;
+  // collapsible: true,
+  var aopts = { heightStyle: "content" };
+  $("#accordion").accordion(aopts); // 
+  
+  // Options
+  $("#options").html("Choose Country: <select name=\"mysel\" id=\"mysel\"></select>");
+  var selel = document.getElementById("mysel");
+  webview.addoptions(ctryinfo, selel, {aid: "name", aname: "name"}); // "selelem"
+  //  Matrix
+  // Setting width: ... on content generated by cell callback is a way to affect the total width
+  function mtx_cell(e, ctx) { return "<span style=\"width: 200px;\">"+e.name+"</span>"; }
+  $("#matrix").html( webview.matrix(ctryinfo, mtx_cell, {colcnt: 3}) );
+  
+  // Tree
+  var tviewopts = {
+    nameattr: "name",
+    subattr: "children",
+    licb : function (person) {
+      //return proc.owner + "(" +proc.pid+ "): " + (proc.path || proc.cmdline) + " " + proc.cpu;
+      // Format the item into the tree
+      return person.name + " (" +person.nick+ ")";
+    }
+  };
+  // Root-item must be an array
+  var treecont = webview.navimenu2l([tree1], tviewopts);
+  $( "#treeview" ).html( treecont );
+  //////// 
+  
+  $("nav a").click(function (ev) { alert("Sorry menu items are only for test purposes :-("); });
+  
+  //$( "#accordion" ).accordion();
+  /////////////////////////////////////////////////
+  function preroute(ev, act) {
+    console.log("Routing: "+act.name+" ('"+location.hash+"' ... "+act.path+")");
+    //if (!datasets.cfg.username) { location.hash = "loginform";  } // return;
+    // Need to override in action for e.g. dialog (e.g. viewid)
+    ev.viewtgtid = "routerdiv";
+  }
+  var router = new Router66({ noactcopy: 1, sdebug: 1, pre: preroute}); //defpath: "basicinfo",
+  //router.add(acts); // Checks hdlr: ... "Action handler is not an callable function"
+  //router.start();
+};
+//);
+</script>
+
+</head>
+<body >
+<div id="header"><h1><span>webview.js Demo n' Test</span></h1></div>
+
+<nav id="navigation" ></nav>
+<br/>
+<div id="content">
+<!-- This should wrap song selection bootstrapped at page init -->
+<div id="testarea"></div>
+</div>
+</body>
+</html>

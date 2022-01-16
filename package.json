@@ -1,0 +1,33 @@
+{
+  "name": "websome",
+  "description": "Create simple (grid, tree, matrix ..) views for webapps",
+  "version": "1.0.0",
+  "main": "webview.js",
+  "authors": [
+    "Olli Hollmen <olli.hollmen@gmail.com>"
+  ],
+  "devDependencies": {
+    "jquery": "3.3.1",
+    "jquery-ui-dist": "1.12.1",
+    "router66": "^1.0.6"
+  },
+  "scripts": {
+    "lint": "jshint -c .jshintrc webview.js"
+  },
+  "keywords": [
+    "web",
+    "view",
+    "mvc"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "repository": "github:ohollmen/websome",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
