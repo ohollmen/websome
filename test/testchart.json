@@ -1,0 +1,13 @@
+{
+  "labels": ["Jan","Feb","Mar", "Apr", "May"],
+  "datasets": [
+    {
+      "label": "Set 1",
+      "data": [1,2,3, 30, 5]
+    },
+    {
+      "label": "Set 2",
+      "data": [1001,1002,1003, 500, 1005]
+    }
+  ]
+}
