@@ -1,7 +1,7 @@
 {
   "name": "websome",
   "description": "Create simple (grid, tree, matrix ..) views for webapps",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "webview.js",
   "authors": [
     "Olli Hollmen <olli.hollmen@gmail.com>"
