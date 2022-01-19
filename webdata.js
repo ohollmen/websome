@@ -126,8 +126,29 @@ webdata.chart_lastdate = function (cdata) {
   catch (ex) { console.log("Last label ("+lv+") not in Date parseable format"); return null; }
   return d;
 };
-
-/** Find timelimit in labels where data should be slced.
+/** Assign colors to datasets from colorarray.
+* If array has less colors than there are datasets reuse/multiply colors as much as needed.
+*/
+webdata.chart_colorset = function (cdata, colarr) {
+  if (!cdata || !cdata.datasets) { return; }
+  if (!colarr) { return; }
+  var clen = cdata.datasets.length;
+  if (colarr.length >= clen) { } // NOP
+  // TODO: See if we can handle this by indexing
+  else {
+    colarr = [...colarr]; // Clone
+    while (colarr.length < clen) {
+      colarr = colarr.concat(colarr);
+    }
+  }
+  console.log("DS-len: "+clen+" Now have "+colarr.length+" colors");
+  var i = 0;
+  cdata.datasets.forEach((ds) => {
+    ds.borderColor = colarr[i];
+    ds.borderWidth = 1;
+  });
+};
+/** Find timelimit in labels where data should be sliced.
 * Assumes all labels (cdata.labels) to be in (JS Data()) parseable time format.
 * Tested with ISO time, not sure if others work.
 * Note: Only labels are accessed during this op.
