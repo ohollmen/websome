@@ -87,7 +87,7 @@ webdata.chart_smooth_filter = function (cdata, opts) {
     // Take ds.data2 into use ?
     if (debug) { ds.data2 = data2; }
     else { ds.data = data2; } // delete(ds.data2);
-  });
+  }); // forEach
   // Initial hard-wired winsize: 3
   function calc_winsize3(data, data2, ds) {
     for (var i=0;i<data.length;i++) {
@@ -101,6 +101,84 @@ webdata.chart_smooth_filter = function (cdata, opts) {
     if (debug) { ds.data2 = data2; }
     else { ds.data = data2; } // delete(ds.data2);
   }
+};
+/** Clean up unwanted _meta attribute from chart datasets.
+* Once rendered chart data seems to be injected with Chart.js _meta helper
+* property that seems to contain circular references. To clone data this must
+* be cleaned up. Cleanup happens in all datasets.
+* @param cdata {object} - Chart data (with labels, datasets)
+*/
+webdata.chart_metaclean = function (cdata) {
+  cdata.datasets.forEach((ds) => { delete(ds._meta); });
+};
+/** Sample labels for last date and return Date object for it.
+* In cases where data cannot be parsed, null is returned (parsing exceptions are caught).
+* @param cdata {object} - Chart data
+* @return JS Date Object or null on failed parsing.
+*/
+webdata.chart_lastdate = function (cdata) {
+  if (!cdata) { return null; }
+  var lbs = cdata.labels;
+  if (!lbs || !Array.isArray(lbs)) { console.log("No labels or labels not in array"); return null; }
+  var lv = lbs[lbs.length-1];
+  var d;
+  try { d = new Date(lv); }
+  catch (ex) { console.log("Last label ("+lv+") not in Date parseable format"); return null; }
+  return d;
+};
+
+/** Find timelimit in labels where data should be slced.
+* Assumes all labels (cdata.labels) to be in (JS Data()) parseable time format.
+* Tested with ISO time, not sure if others work.
+* Note: Only labels are accessed during this op.
+*/
+webdata.chart_timelim_idx = function (cdata, ts, opts) {
+  opts = opts || {copy: 0, debug: 0};
+  if (!ts) { console.log("Got:"+ts); return; }
+  var ut = Math.floor(Date.now() / 1000); // new Date();
+  var dt = ut - ts;
+  dt = dt*1000; // 
+  var d = new Date(dt);
+  if (opts.debug) {
+  console.log("ST("+dt+"): ", d);
+  console.log("Time at "+dt+" ms. is "+d.toISOString());
+  console.log("labels cnt:", cdata.labels.length);
+  }
+  var i = 0;
+  var dls = cdata.labels;
+  for (;i<dls.length;i++) {
+    let d2 = new Date(dls[i]); // Date.parse();
+    //console.log(d2.toISOString());
+    //var t1 = d; //.getMilliseconds();
+    //var t2 = d2; // .getMilliseconds();
+    console.log("CMP("+i+"): "+d+" "+d2);
+    // if (d2.getMilliseconds() > d.getMilliseconds()) { break; }
+    if (d2 > d) { break; }
+  }
+  if (i >= dls.length) { console.log("Reached end ("+i+") No match !!!"); return -1; }
+  console.log("Item: "+i+" ... "+dls[i]+ " newer vs. "+d.toISOString());
+  return i;
+};
+
+/** Slice data vectors and labels at an offset.
+* 
+* @param cdata {object} chart data
+* @param idx {number} - Index/Offset. The value at offset will be still kept (inclusive)
+* @params opts {object} - Options object (w. copy: true/false)
+* Return chart
+* @todo Allow window from idx0 ... idx1
+*/
+webdata.chart_slice = function (cdata, idx, opts) {
+  if (!cdata) { return; }
+  if (idx < 1) { return; }
+  opts = opts || {};
+  /// Slicing
+  // if (opts.copy) { cdata = rapp.dclone(cdata); }
+  cdata.labels = cdata.labels.slice(idx);
+  var dss = cdata.datasets;
+  // Also colors, etc ?
+  dss.forEach((ds) => { ds.data = ds.data.slice(idx); });
+  opts.debug && console.log("POST-TLIM: ", cdata);
 };
 
 if (!window) { module.exports = webdata; }
