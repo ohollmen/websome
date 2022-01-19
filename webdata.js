@@ -146,6 +146,9 @@ webdata.chart_colorset = function (cdata, colarr) {
   cdata.datasets.forEach((ds) => {
     ds.borderColor = colarr[i];
     ds.borderWidth = 1;
+    
+    i++;
+    // if (i >= colarr.length) { i = 0; }
   });
 };
 /** Find timelimit in labels where data should be sliced.
