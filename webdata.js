@@ -184,7 +184,7 @@ webdata.chart_timelim_idx = function (cdata, ts, opts) {
     if (d2 > d) { break; }
   }
   if (i >= dls.length) { console.log("Reached end ("+i+") No match !!!"); return -1; }
-  console.log("Item: "+i+" ... "+dls[i]+ " newer vs. "+d.toISOString());
+  opts.debug && console.log("Item: "+i+" ... "+dls[i]+ " newer vs. "+d.toISOString());
   return i;
 };
 
