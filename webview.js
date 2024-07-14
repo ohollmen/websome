@@ -135,6 +135,7 @@ webview.listview_jsg = function (result, jsgdef, opts) {
  * - plugs - Callbacks for transforming values (see plugins doc below)
  * - als - property/attribute names mapped to display names
  * - ctx - Additiona "user data" for use in plugins (see plugins doc below)
+ * - ccnt - Column count for view (the field name, field value will be laid out in this many columns)
  * 
  * ## Plugin interface
  * Plugins will be dispatched with following signature:
@@ -171,17 +172,24 @@ webview.seview = function  (e, attrs, opts) {
   var plugs = opts.plugs || {};
   var ctx = opts.ctx || {};
   var als = opts.als || {};
+  var ccu = opts.ccnt || 1;
   if (opts.debug) {console.log("Using attrs: " + JSON.stringify(attrs));}
-  var out = "<table>";
+  var out = "<table >";
+  var i = 0;
   attrs.forEach(function (at) {
     var p = plugs[at];
     var lbl = als[at] ? als[at] : at;
-    out += "<tr><td><label>" + lbl + "</label></td>";
-    if (p) {out += "<td>" + p(e[at], e, at, ctx) + "</td>";}
+    if (i == 0) { out += "<tr>"; } // NEW
+    // NEW: Keep TR out of cell output <tr>
+    out += "<td ><label>" + lbl + "</label></td>";
+    if (p) { out += "<td ><span class=\"vcell\">" + p(e[at], e, at, ctx) + "</span></td>"; }
     //if (at == pkattr) {out += "<td><a href=\"?act=showrec&recid="+ e[at] + "\">"+ (e[at] ? e[at] : "") + "</a></td>";}
-    else {out += "<td>" + (e[at] ? e[at] : "") + "</td>";}
-    out += "</tr>";
+    else   { out += "<td ><span class=\"vcell\">" + (e[at] ? e[at] : "") + "</span></td>"; }
+    //out += "</tr>"; // OLD/Simple
+    i++;
+    if (i >= ccu) { out += "</tr>\n"; i=0; }
   });
+  if (i > 0) { out += "</tr>\n"; }
   out += "</table>";
   return (out);
 };
