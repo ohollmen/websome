@@ -4,6 +4,10 @@
 * - Dealing with select menus
 * - Getting multiple values or child-collection for a form param
 * - Commonly used custom widgets / patterns
+* 
+* For large part this module is "DOM intensive", i.e. it calls Web
+* browser DOM APIs a lot and for those parts it is unfit for running on
+* server side.
 */
 
 var webformui = {};
@@ -20,7 +24,7 @@ webformui.getformvals =  function (fid, opts) {
   // console.log("form field type:",f.numvert.type);
   // console.log(Object.keys(f)); // 0,1,2,3
   if (opts.debug) { console.log("Form:" + f); }
-  var kv = {}; // Form k-v Object to return
+  var kv = {}; // Form derived k-v Object to return
   var tconvs = {
      "number": function (v) {return parseFloat(v);},
      "int":    function (v) {return parseInt(v);},
@@ -76,7 +80,7 @@ webformui.getformvals =  function (fid, opts) {
          // Prev comp *must* be array node
          if      ( (typeof currkv[idx] == 'object' ) ) { currkv[idx];  } // Do nothing - already object
          else if ( (typeof currkv[idx] != 'object' ) ) { currkv[idx] = {};   } // Set to object ( What if we have N.M - multiple indexes (next) in a row ?)
-         currkv = currkv[idx]; // should be object
+         currkv = currkv[idx]; // should be object (or array based on next comp !?)
          continue;
       }
       else if (currkv[comp] && (typeof currkv[comp] == 'object')) {  } // currkv = currkv[comp];
@@ -100,10 +104,12 @@ webformui.getformvals =  function (fid, opts) {
 }
 
 
-// Return Form data gotten by std/built-in new FormData(f) method.
+/** Return Form data gotten by std/built-in new FormData(f) method.
 // Converts data into AoO format familiar from JQ .serializeArray().
 // This will will turn FormData into AoO easier to dump and process (as std. array w. array methods).
+// @param f - The DOM form element (HTMLFormElement)
 // @return array of items with name and value.
+*/
 webformui.formdata_as_arr = function (f) {
   // Validate f as HTMLFormElement' (Also .nodeName, .tagName ?)
   if (!(f instanceof HTMLFormElement)) { console.error("Form is not HTMLFormElement !"); return null; }
@@ -119,6 +125,7 @@ webformui.formdata_as_arr = function (f) {
 
 // Populate options on selects with attribute "autobind" (DEPRECATED)
 // Raw DOM version of view_autobind_jq.
+// NOTE: Uses global optionsets. DO NOT Use this on new apps.
 webformui.view_autobind = function () {
   var abels = document.querySelectorAll('select[autobind]');
   console.log(`Got ${abels.length} autobind els (dom)`);
@@ -132,10 +139,12 @@ webformui.view_autobind = function () {
   }
   //console.log(`Bound ${bcnt} autobind  (dom)`);
 }
-// Set value on a select menu (Seems this is unnecessary as of mid-2024 ans .value will set select as well).
+/** Set value on a select menu (Seems this is unnecessary as of
+// mid-2024 as el.value will set select as well).
 // Need to potentially .add() and item for graceful behaviour (to not lose value).
 // Note: sel.selectedIndex only applies on non-multiple selects (in those set to first selected)
 // There is sel.selectedOptions for one-or-may items
+*/
 webformui.setselect = function (sel, val) {
   var manyidx;
   var selcnt = 0;
@@ -167,8 +176,19 @@ webformui.setselect = function (sel, val) {
   //   }
   //}
 }
-// Prepare a dialog for pre-populated values lookup.
-// Get dialog title from ... ???
+/** Prepare a JQ dialog for pre-populated values lookup.
+* Creates a div for the dialog on-the-fly.
+* Get dialog title from button passed (as first arg).
+* @param butt (DOM button) - Button that triggers dialog. value from
+* button is used as dialog title and data-tgt must refer to (input) element
+* where selected value is assigned to.
+* @param optslist (array) - Array of options
+* @param opts (object) - Options for listdialog
+* Options for listdialog:
+* - debug - turn on debug messages
+* - cb - custom cb to generate dialog selections (html) anchor-list
+*   with (this callback gets passed the "optslist" - 2nd arg options array)
+*/
 webformui.listdialog = function (butt, optslist, opts) {
   opts = opts || {debug: 1};
   if (!butt) { console.error("No button passed !!!"); }
@@ -182,6 +202,7 @@ webformui.listdialog = function (butt, optslist, opts) {
   
   // TODO: Grab target from button(input[type=button]) here
   var tgt = butt.dataset.tgt; // OLD: this in inner cb
+  if (!tgt) { alert("No selected-value target elem. (data-tgt) specified !"); return; }
   var tgtel = document.querySelector(tgt);
   // Show missing tgtel *already* at form view load  (uisetup) time !!!
   if (!tgtel) { alert("No tgt el for selector "+tgt); return; }
@@ -194,6 +215,7 @@ webformui.listdialog = function (butt, optslist, opts) {
   
       if (opts.debug) { console.log("Button "+butt.id+" => Dialog (choices) => "+tgt); }
       // OLD: "#rfdialog a". TODO: hard elem, sub-sel
+      // TODO: document.querySelector().addEventListener("click", ()=> {})
       $( "#"+ddiv.id+ " a" ).click(function () {
         console.log("CLICK on list-anchor");
         //var v = $(this).data('val'); // Uses data-val="..."
