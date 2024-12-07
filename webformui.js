@@ -9,7 +9,7 @@
 * browser DOM APIs a lot and for those parts it is unfit for running on
 * server side.
 */
-
+var webview;
 var webformui = {};
 /** Get values from uniquely named widgets of a form.
  * Note: var t = f[k].getAttribute('data-type') will crash with Uncaught TypeError: f[k].getAttribute is not a function if the names on widgets are not unique
@@ -70,7 +70,7 @@ webformui.getformvals =  function (fid, opts) {
     var currkv = kv; var idx;
     console.log(`START: type: ${typeof kv} path: ${path}... value: ${kv[path]}`);
     var currtype;
-    for (i=0;comp = parr[i];i++) {
+    for (let i=0;comp = parr[i];i++) {
       console.log(`COMP: ${i}: ${parr[i]} currkv is `);
       var last = (i == (parr.length -1)) ? true : false;
       idx = parseInt(comp);
@@ -78,8 +78,8 @@ webformui.getformvals =  function (fid, opts) {
          // Must have prev comp (NOT: [parr[i-1]]
          if ( ! Array.isArray( currkv ) ) { console.error(`Array index ${comp} / ${idx} encountered in dot-not, but not array node !`); kv[parr[i-1]] = []; } // roll object back, set array
          // Prev comp *must* be array node
-         if      ( (typeof currkv[idx] == 'object' ) ) { currkv[idx];  } // Do nothing - already object
-         else if ( (typeof currkv[idx] != 'object' ) ) { currkv[idx] = {};   } // Set to object ( What if we have N.M - multiple indexes (next) in a row ?)
+         if      ( (typeof currkv[idx] == 'object' ) ) { currkv[idx]; } // Do nothing - already object
+         else if ( (typeof currkv[idx] != 'object' ) ) { currkv[idx] = {}; } // Set to object ( What if we have N.M - multiple indexes (next) in a row ?)
          currkv = currkv[idx]; // should be object (or array based on next comp !?)
          continue;
       }
@@ -101,7 +101,7 @@ webformui.getformvals =  function (fid, opts) {
   }
   if (opts.debug) { console.log("Collected (form) K-V Object: ", kv); } // arr, 
   return(kv);
-}
+};
 
 
 /** Return Form data gotten by std/built-in new FormData(f) method.
@@ -121,7 +121,7 @@ webformui.formdata_as_arr = function (f) {
   // .entries() Always creates exactly "tuples" of 2 (k, v). multivals create multiple array items.
   for (var pair of formData.entries()) { arr.push({ name: pair[0], value: pair[1] }); }
   return arr;
-}
+};
 
 // Populate options on selects with attribute "autobind" (DEPRECATED)
 // Raw DOM version of view_autobind_jq.
@@ -138,7 +138,7 @@ webformui.view_autobind = function () {
     webview.addoptions( optionsets[ bindid ], abels[i]); bcnt++;
   }
   //console.log(`Bound ${bcnt} autobind  (dom)`);
-}
+};
 /** Set value on a select menu (Seems this is unnecessary as of
 // mid-2024 as el.value will set select as well).
 // Need to potentially .add() and item for graceful behaviour (to not lose value).
@@ -157,7 +157,7 @@ webformui.setselect = function (sel, val) {
   if ( ! (sel.type == 'select-multiple' || sel.type == 'select-one' )) { console.error("Not a select !"); return; }
   if (Array.isArray(val)) {
     // Check multiple (or just se.multiple)
-    if ( ! f.getAttribute("multiple")) { console.error("Received multi/arr values, but not a multiple select"); return; }
+    if ( ! sel.getAttribute("multiple")) { console.error("Received multi/arr values, but not a multiple select"); return; }
     val.forEach( (v) => { manyidx[v] = true; });
   }
   //else { f[name]...}
@@ -175,7 +175,7 @@ webformui.setselect = function (sel, val) {
   //     sel.add(apt); // or sel.appendChild(opt);
   //   }
   //}
-}
+};
 /** Prepare a JQ dialog for pre-populated values lookup.
 * Creates a div for the dialog on-the-fly.
 * Get dialog title from button passed (as first arg).
@@ -225,7 +225,7 @@ webformui.listdialog = function (butt, optslist, opts) {
         document.querySelector(tgt).value = v; // tgtel.value = v;
         dd.dialog( "close" );
         // Delete (temp) dialog div after use (when dialog closes) !
-        ddiv.remove()
+        ddiv.remove();
       });
       dd.dialog( "open" );
     });
