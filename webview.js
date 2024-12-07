@@ -173,8 +173,9 @@ webview.seview = function  (e, attrs, opts) {
   var ctx = opts.ctx || {};
   var als = opts.als || {};
   var ccu = opts.ccnt || 1;
+  var tabcl = opts.tabcl || "";
   if (opts.debug) {console.log("Using attrs: " + JSON.stringify(attrs));}
-  var out = "<table >";
+  var out = "<table class=\""+tabcl+"\">";
   var i = 0;
   attrs.forEach(function (at) {
     var p = plugs[at];
