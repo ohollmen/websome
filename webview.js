@@ -203,7 +203,7 @@ webview.seview_jsg = function  (e, jsgdef, opts) {
   Object.keys(opts).forEach((k) => { opts2[k] = opts[k]; });
   opts2.als   = als;
   opts2.plugs = plugs;
-  webview.seview (e, attrs, opts2);
+  return webview.seview (e, attrs, opts2);
 };
 
 /** Create a matrix view of items in AoO.
