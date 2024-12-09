@@ -447,7 +447,19 @@ http://www.w3schools.com/jsref/coll_select_options.asp
 in option menu.
 */
 webview.addoptions = function (arr, selelem, opts) {
-  selelem.innerHTML = ""; // Reset
+  // TODO: Check .type 'select-one' or 'select-multiple' (also: .tagName, nodeName, )
+  if (!['select-one', 'select-multiple'].includes(selelem.type) ) { console.log("Element for setting options is not a select element. skip."); return; }
+  // TODO: Get value(s) and later revert them to be able to
+  // re-run the options (== be idempotent).
+  // https://stackoverflow.com/questions/5866169/how-to-get-all-selected-values-of-a-multiple-select-box
+  //let oval = selelem.value; // Too simple (on multiple)
+  let selopts = selelem.selectedOptions;
+  // On NO (0) options this returns empty coll, gets below turned to empty array.
+  var values = Array.from(selopts).map( (o) => { return o.value; }); // map(({ value }) => value);
+  if (!values.length) { values = null; console.log(`Values null (no existing selected values for ${selelem.name})`); } else { console.log(`Existing vals: ${values}`); }
+  let selcnt = 0; let selmap = {};
+  //console.log("Got old value: "+oval);
+  selelem.innerHTML = ""; // Reset. if (!opts.noreset) { ... }
   if (!opts) {opts = {};}
   var aid = "id";
   var aname = "name";
@@ -455,17 +467,40 @@ webview.addoptions = function (arr, selelem, opts) {
   if (opts.aname) {aname = opts.aname;}
   if (!Array.isArray(arr)) {throw "Options NOT in Array, got: " + arr;}
   arr.map(function (e) {
-    var option = document.createElement("option");
+    let option = document.createElement("option");
     option.text  = e[aname];
     option.value = e[aid];
+    if (values && values.includes(option.value)) {
+      option.selected = true; selcnt++; selmap[option.value] = true; }
     selelem.add(option);
   });
+  // Provide graceful behavior to not lose existing value(s): All values NOT present in
+  // incoming arr (of options) as made-up options and make them selected.
+  // Note: some options may have been selected - a book keeping for that is in selmap (object).
+  // Note: generated options get apppended (placed last) and may appear out-of-order, but
+  // (for now) it's more important to recover / keep value than maintain ordering.
+  // TODO: Have this in a separate funct to be able to use from setvals
+  if (values && (selcnt < values.length)) {
+    // Separate func (to share betw. addoptions and setoptvals) ?
+    console.log(`Not all vals for ${selelem.name} were found in options (${values.length} vals, ${selcnt} selected)`);
+    values.forEach( (v) => {
+       if (!selmap[v]) { // value "v" not selected yet.
+  	 // Could populate AoO here (like incom. arr, call recursively w. {noreset: true})
+  	 // Actually doing that we'd avoid maintaining selmap BUT we'd need to pass selected (+/-0).
+  	 let o = document.createElement("option");
+  	 o.text = o.value = v;
+	 o.selected = true;
+  	 selelem.add(o);
+      }
+    });
+  }
+  
   // Extra round of map to select particular item(s)
   // selectedIndex
   //NOTUSED:var ismultidef = function (v) {return def[v];}; // exists ? def[v] != undefined  typeof variable !== 'undefined'
   // var isdef = function (v) {return (v == def);}; // TODO
   var def = opts.def;
-  var def2 = selelem.getAttribute("data-defval");
+  var def2 = selelem.getAttribute("data-defval"); // Overriding def
   if (def2) { def = def2; }
   if (def) {
     console.log("Got default :'" + def + "'");
@@ -483,6 +518,39 @@ webview.addoptions = function (arr, selelem, opts) {
   }
 
 };
+
+/** Set options (single or multiple).
+  * Creates new option items for the values that were not found
+  * in options (by o.value). 
+  */
+webview.setoptvals = function(vals, sel) {
+    if (!Array.isArray(vals)) { vals = [vals]; } // && typeof vals == 'string';
+    //else {return; }
+    let selcnt = 0; let selmap = {};
+    for (i = 0; i < sel.length; i++) {
+      let o = sel.options[i];
+      // MULTI: def[ sel.options[i].value ]
+      if (vals.includes(o.value) ) {
+        // if (opts.debug) { ...}
+        console.log(`Set val '${o.value}' (at idx: ${i})`);
+        //NA:selelem.selectedIndex = i;
+	o.selected = 1;
+	selcnt++; selmap[o.value] = true;
+      }
+    }
+    if (vals && (selcnt < vals.length)) {
+      console.log("Not all values were in options ...");
+      //let = nskeys =
+      vals.forEach( (v) => {
+        if (!selmap[v]) {
+	  let o = document.createElement("option");
+	  o.text = o.value = v; o.selected = true; sel.add(o);
+	}
+      });
+      
+    }
+  }
+
 /** Create simple (ul) list from AoO in arr.
 * @param arr {array} - Set of items (array of Objects) to display on list
 * @param opts {objects} - Options for list

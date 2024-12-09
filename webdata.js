@@ -208,5 +208,14 @@ webdata.chart_slice = function (cdata, idx, opts) {
   dss.forEach((ds) => { ds.data = ds.data.slice(idx); });
   opts.debug && console.log("POST-TLIM: ", cdata);
 };
-
+/** Trim surrounding spaces and split to array.
+* Default for optional delim - string or regexp - is (string) "\n".
+*/
+webdata.trim_n_split(str, delim) {
+  str = str.trim();
+  if (!delim) { delim = "\n"; }
+  let arr = str.split(delim);
+  arr = arr.filter( (it) => { return it; }); // ret non-empty
+  return arr;
+};
 if (!window) { module.exports = webdata; }
