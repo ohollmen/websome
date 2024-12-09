@@ -211,7 +211,7 @@ webdata.chart_slice = function (cdata, idx, opts) {
 /** Trim surrounding spaces and split to array.
 * Default for optional delim - string or regexp - is (string) "\n".
 */
-webdata.trim_n_split(str, delim) {
+webdata.trim_n_split = function (str, delim) {
   str = str.trim();
   if (!delim) { delim = "\n"; }
   let arr = str.split(delim);
